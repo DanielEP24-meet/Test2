@@ -13,6 +13,8 @@ export default function TabLayout() {
             iconName = focused ? 'home' : 'home-outline';
           } else if (route.name === 'profile') {
             iconName = focused ? 'person' : 'person-outline';
+          } else if (route.name === 'chat') {
+            iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -25,14 +27,21 @@ export default function TabLayout() {
         name="home"
         options={{
           title: 'Home',
-          headerShown : false
+          headerShown: false
+        }}
+      />
+      <Tabs.Screen
+        name="chat"
+        options={{
+          title: 'Chat',
+          headerShown: false
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
-          headerShown : false
+          headerShown: false
         }}
       />
     </Tabs>

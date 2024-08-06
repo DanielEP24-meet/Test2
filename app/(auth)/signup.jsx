@@ -1,9 +1,23 @@
-import React from 'react';
+import React , {useState} from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-
+import { router } from 'expo-router';
+import { useUser } from '../../context/userContext';
 const SignUp = () => {
-  const handleSignUp = () => {
-    console.log('works!')
+  const [email , setEmail] = useState('');
+  const [username , setUsername] = useState('');
+  const [password , setPassword] = useState('');
+  const [isSigningUp, setIsSigningUp] = useState(false);
+  const { user, isLoading, signup, logout } = useUser();
+  const handleSignUp = async () => {
+    setIsSigningUp(true);
+    try {
+      await signup(email, password , username);
+      router.push('(tabs)/home');
+    } catch (error) {
+      console.error('Login failed:', error.message);
+    } finally {
+      setIsSigningUp(false);
+    }
   };
 
   return (
@@ -14,31 +28,37 @@ const SignUp = () => {
           style={styles.input}
           placeholder="Username"
           placeholderTextColor="#95a5a6"
+          value={username}
+          onChangeText={setUsername}
         />
         <TextInput
           style={styles.input}
           placeholder="Email"
           placeholderTextColor="#95a5a6"
           keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
         />
-        <TextInput
+        {/* <TextInput
           style={styles.input}
           placeholder="ID Number"
           placeholderTextColor="#95a5a6"
           keyboardType="numeric"
-        />
+        /> */}
         <TextInput
           style={styles.input}
           placeholder="Password"
           placeholderTextColor="#95a5a6"
           secureTextEntry
+          value={password}
+          onChangeText={setPassword}
         />
-        <TextInput
+        {/* <TextInput
           style={styles.input}
           placeholder="Age"
           placeholderTextColor="#95a5a6"
           keyboardType="numeric"
-        />
+        /> */}
         <TouchableOpacity style={styles.button} onPress={handleSignUp}>
           <Text style={styles.buttonText}>Sign Up</Text>
         </TouchableOpacity>

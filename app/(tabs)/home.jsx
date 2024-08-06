@@ -1,35 +1,91 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
-import { useUser } from '../../context/userContext'; // Adjust the import path as needed
-
-const VolunteerActivity = ({ org, type, time, image }) => (
-  <TouchableOpacity style={styles.activityContainer} onPress={() => console.log('Activity pressed')}>
-    <Image source={{ uri: image }} style={styles.activityImage} />
-    <View style={styles.activityInfo}>
-      <Text style={styles.orgName}>{org}</Text>
-      <Text style={styles.activityType}>{type}</Text>
-      <Text style={styles.activityTime}>{time}</Text>
-    </View>
-  </TouchableOpacity>
-);
-
-const activities = [
-  { org: 'Green Earth', type: 'Environmental Cleanup', time: 'Saturday, 10 AM', image: 'https://picsum.photos/200/300' },
-  { org: 'Happy Paws', type: 'Animal Shelter Support', time: 'Sunday, 2 PM', image: 'https://picsum.photos/200/300' },
-  { org: 'Tech for All', type: 'Computer Literacy Workshop', time: 'Wednesday, 6 PM', image: 'https://picsum.photos/200/300' },
-  { org: 'Food Bank', type: 'Food Distribution', time: 'Monday, 9 AM', image: 'https://picsum.photos/200/300' },
-  { org: 'Senior Care', type: 'Elderly Companionship', time: 'Tuesday, 3 PM', image: 'https://picsum.photos/200/300' },
-];
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
+import { useUser, fetchOrgs } from '../../context/userContext';
+import { getStorage, ref as storageRef, getDownloadURL } from 'firebase/storage';
+import VolunteerActivity from '../../components/VolunteerActivity';
 
 export default function Home() {
+  const [orgs, setOrgs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const { user } = useUser();
+
+  useEffect(() => {
+    const loadOrgData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const fetchedOrgs = await fetchOrgs();
+        if (!fetchedOrgs || typeof fetchedOrgs !== 'object') {
+          throw new Error('Fetched organizations data is not an object');
+        }
+        
+        const orgsArray = await Promise.all(Object.entries(fetchedOrgs).map(async ([id, org]) => {
+          try {
+            if (org.orgPic) {
+              const storage = getStorage();
+              const imageRef = storageRef(storage, org.orgPic);
+              const imageUrl = await getDownloadURL(imageRef);
+              return {
+                id,
+                org: org.name,
+                type: org.type || 'N/A',
+                location: org.location || 'N/A',
+                image: imageUrl
+              };
+            }
+            return {
+              id,
+              org: org.name,
+              type: org.type || 'N/A',
+              location: org.location || 'N/A',
+              image: null
+            };
+          } catch (imageError) {
+            console.error('Error fetching image for org:', org.name, imageError);
+            return {
+              id,
+              org: org.name,
+              type: org.type || 'N/A',
+              location: org.location || 'N/A',
+              image: null
+            };
+          }
+        }));
+        
+        setOrgs(orgsArray);
+      } catch (error) {
+        console.error('Error fetching org data:', error);
+        setError(error.message);
+      }
+      setLoading(false);
+    };
+
+    loadOrgData();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Error: {error}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <Text style={styles.greeting}>Hello, {user?.name || 'User'}!</Text>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {activities.map((activity, index) => (
-          <VolunteerActivity key={index} {...activity} />
+        {orgs.map((org) => (
+          <VolunteerActivity key={org.id} {...org} />
         ))}
       </ScrollView>
     </View>
@@ -41,6 +97,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f0f4f8',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 16,
+  },
   greeting: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -49,39 +119,5 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 10,
-  },
-  activityContainer: {
-    backgroundColor: '#ffffff',
-    borderRadius: 10,
-    marginBottom: 20,
-    overflow: 'hidden',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  activityImage: {
-    width: '100%',
-    height: 150,
-    resizeMode: 'cover',
-  },
-  activityInfo: {
-    padding: 15,
-  },
-  orgName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2c3e50',
-    marginBottom: 5,
-  },
-  activityType: {
-    fontSize: 16,
-    color: '#34495e',
-    marginBottom: 5,
-  },
-  activityTime: {
-    fontSize: 14,
-    color: '#7f8c8d',
   },
 });

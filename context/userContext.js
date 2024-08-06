@@ -18,7 +18,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const database = getDatabase(app);
+export const database = getDatabase(app);
 
 // Create the context
 const UserContext = createContext();
@@ -43,9 +43,10 @@ export const UserProvider = ({ children }) => {
 
   const fetchUserData = async (uid) => {
     try {
-      const userRef = ref(database, `users/${uid}`);
+      const userRef = ref(database, `Users/${uid}`);
       const snapshot = await get(userRef);
       if (snapshot.exists()) {
+        console.log('User data:', snapshot.val());
         setUser({ uid, ...snapshot.val() });
       } else {
         setUser({ uid });
@@ -60,7 +61,9 @@ export const UserProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log("User logged in 2");
       await fetchUserData(userCredential.user.uid);
+      console.log("User logged in 1");
     } catch (error) {
       console.error('Error logging in:', error);
       throw error;
@@ -71,7 +74,7 @@ export const UserProvider = ({ children }) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const { uid } = userCredential.user;
-      await set(ref(database, `users/${uid}`), userData);
+      await set(ref(database, `Users/${uid}`), ...userData);
       setUser({ uid, ...userData });
     } catch (error) {
       console.error('Error signing up:', error);
@@ -125,3 +128,37 @@ export const useUser = () => {
   }
   return context;
 };
+
+
+export async function fetchOrgs(specificOrgs = null) {
+  const orgsRef = ref(database, 'Orgs');
+  
+  try {
+    const snapshot = await get(orgsRef);
+    
+    if (snapshot.exists()) {
+      const orgsData = snapshot.val();
+      let result = {};
+      
+      if (specificOrgs && typeof specificOrgs === 'object' && !Array.isArray(specificOrgs)) {
+        // Fetch only specific orgs if provided as an object
+        Object.keys(specificOrgs).forEach(orgName => {
+          if (orgsData.hasOwnProperty(orgName)) {
+            result[orgName] = orgsData[orgName];
+          }
+        });
+      } else {
+        // Fetch all orgs if no specific ones provided or if input is not an object
+        result = orgsData;
+      }
+      
+      return result;
+    } else {
+      console.log("No data available in Orgs");
+      return {};
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    throw error;
+  }
+}
