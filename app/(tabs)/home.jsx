@@ -82,7 +82,7 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.greeting}>Hello, {user?.name || 'User'}!</Text>
+      <Text style={styles.greeting}>Hello, {user?.username || 'User'}!</Text>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {orgs.map((org) => (
           <VolunteerActivity key={org.id} {...org} />

@@ -1,18 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Modal, FlatList, ImageBackground } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { fetchOrgs } from '../../context/userContext';
+import { fetchOrgs, useUser } from '../../context/userContext'; // Assume useUser is available
 import { getStorage, ref as storageRef, getDownloadURL } from 'firebase/storage';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const OrganizationPage = () => {
   const { orgName } = useLocalSearchParams();
+  const { user, userLoading } = useUser(); // Get current user and loading state
   const [orgData, setOrgData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
   const [orgImage, setOrgImage] = useState(null);
+  const [isMember, setIsMember] = useState(false);
+  const [requestSent, setRequestSent] = useState(false);
 
   const timeSlots = Array.from({ length: 8 }, (_, i) => {
     const start = 10 + i;
@@ -34,6 +37,8 @@ const OrganizationPage = () => {
               const url = await getDownloadURL(imageRef);
               setOrgImage(url);
             }
+            // Check if user exists and has orgs property
+            setIsMember(user?.orgs ? Object.keys(user.orgs).includes(orgName) : false);
           } else {
             setError('Organization not found in the result');
           }
@@ -50,7 +55,14 @@ const OrganizationPage = () => {
     };
 
     loadOrgData();
-  }, [orgName]);
+  }, [orgName, user]);
+
+  useEffect(() => {
+    console.log('User object:', user);
+    console.log('User orgs:', user?.orgs);
+    console.log('Org name:', orgName);
+    console.log('Is member:', user?.orgs ? Object.keys(user.orgs).includes(orgName) : false);
+  }, [user, orgName]);
 
   const renderTimeSlot = ({ item }) => (
     <TouchableOpacity
@@ -64,10 +76,15 @@ const OrganizationPage = () => {
     </TouchableOpacity>
   );
 
-  if (loading) {
+  const handleApply = () => {
+    // Here you would typically send an application request to your backend
+    setRequestSent(true);
+  };
+
+  if (loading || userLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Loading organization data...</Text>
+        <Text style={styles.loadingText}>Loading...</Text>
       </View>
     );
   }
@@ -130,12 +147,22 @@ const OrganizationPage = () => {
         </View>
       )}
 
-      <TouchableOpacity style={styles.selectTimeButton} onPress={() => setModalVisible(true)}>
-        <Text style={styles.selectTimeButtonText}>Select Time Slot</Text>
-      </TouchableOpacity>
+      {isMember ? (
+        <TouchableOpacity style={styles.actionButton} onPress={() => setModalVisible(true)}>
+          <Text style={styles.actionButtonText}>Select Time Slot</Text>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity style={styles.actionButton} onPress={handleApply}>
+          <Text style={styles.actionButtonText}>Apply</Text>
+        </TouchableOpacity>
+      )}
       
-      {selectedTimeSlot && (
+      {isMember && selectedTimeSlot && (
         <Text style={styles.selectedTimeText}>Selected Time: {selectedTimeSlot}</Text>
+      )}
+
+      {!isMember && requestSent && (
+        <Text style={styles.requestSentText}>Your request has been sent</Text>
       )}
 
       <Modal
@@ -189,6 +216,31 @@ const styles = StyleSheet.create({
     color: '#d9534f',
     textAlign: 'center',
     marginTop: 50,
+  },
+  actionButton: {
+    backgroundColor: '#5cb85c',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginVertical: 20,
+    marginHorizontal: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  actionButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  requestSentText: {
+    fontSize: 16,
+    marginTop: 10,
+    textAlign: 'center',
+    color: '#5cb85c',
+    fontWeight: 'bold',
   },
   orgImage: {
     width: '100%',

@@ -78,9 +78,6 @@ export default function ChatScreen() {
         keyExtractor={item => item.id}
         style={styles.chatList}
       />
-      <TouchableOpacity style={styles.fab} onPress={() => console.log('New chat')}>
-        <Ionicons name="chatbubble-ellipses" size={24} color="white" />
-      </TouchableOpacity>
     </View>
   );
 }
