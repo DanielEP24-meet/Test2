@@ -23,7 +23,7 @@ const Login = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.content}>
+      <View style={styles.formContainer}>
         <Text style={styles.title}>Login to Hestia</Text>
         <TextInput
           style={styles.input}
@@ -40,8 +40,8 @@ const Login = () => {
           placeholderTextColor="#95a5a6"
           secureTextEntry
         />
-        <TouchableOpacity 
-          style={styles.button} 
+        <TouchableOpacity
+          style={styles.button}
           onPress={handlePress}
           disabled={isLoggingIn}
         >
@@ -62,43 +62,34 @@ const Login = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f4f8',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: '#fff',
   },
-  content: {
-    width: '80%',
-    alignItems: 'center',
+  formContainer: {
+    flex: 1,
+    padding: 40,
+    justifyContent: 'center',
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
     color: '#2c3e50',
     marginBottom: 40,
-    textAlign: 'center',
   },
   input: {
     width: '100%',
-    backgroundColor: '#ffffff',
+    height: 50,
+    borderBottomWidth: 1,
+    borderBottomColor: '#bdc3c7',
     paddingHorizontal: 15,
-    paddingVertical: 12,
-    borderRadius: 25,
     fontSize: 16,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#bdc3c7',
+    marginBottom: 20,
   },
   button: {
-    backgroundColor: '#3498db',
+    backgroundColor: '#8B0000',
     paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 25,
-    elevation: 3,
-    width: '100%',
+    borderRadius: 5,
     alignItems: 'center',
-    marginTop: 10,
-    minHeight: 50,  
-    justifyContent: 'center', 
+    marginTop: 20,
   },
   buttonText: {
     color: '#ffffff',
@@ -107,10 +98,13 @@ const styles = StyleSheet.create({
   },
   signUpButton: {
     marginTop: 20,
+    alignItems: 'center',
   },
   signUpButtonText: {
-    color: '#3498db',
+    color: '#8B0000',
     fontSize: 16,
+    textAlign: 'center',
+    fontWeight: '500',
   },
 });
 

@@ -15,11 +15,13 @@ export default function TabLayout() {
             iconName = focused ? 'person' : 'person-outline';
           } else if (route.name === 'chat') {
             iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
+          } else if (route.name === 'view') {
+            iconName = focused ? 'list' : 'list-outline';
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#3498db',
+        tabBarActiveTintColor: '#8B0000',
         tabBarInactiveTintColor: 'gray',
       })}
     >
@@ -27,6 +29,13 @@ export default function TabLayout() {
         name="home"
         options={{
           title: 'Home',
+          headerShown: false
+        }}
+      />
+      <Tabs.Screen
+        name="view"
+        options={{
+          title: 'View All',
           headerShown: false
         }}
       />

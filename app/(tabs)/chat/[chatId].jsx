@@ -92,7 +92,7 @@ export default function ChatRoomScreen() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <Message
-            username={item.sender === user.uid ? 'You' : item.sender}
+            username={item.sender === user.username ? 'You' : item.sender}
             message={item.text}
             profilePicture={null}
           />
